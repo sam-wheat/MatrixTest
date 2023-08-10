@@ -1,0 +1,74 @@
+﻿@page "/"
+
+<table style="border:solid 2px black;">
+    @{
+        int rowIndex = 0;
+        int rowCount = Convert.ToInt32(Math.Ceiling(people.Count / Convert.ToDecimal(ColumnCount)));
+    }
+    @while (rowIndex <= rowCount)
+    {
+        int tmpRowIndex = rowIndex;
+        <Tr>
+            @{
+                int colStart = (tmpRowIndex * ColumnCount);
+                int colStop = (tmpRowIndex * ColumnCount + ColumnCount);
+            }
+            @for (int colIndex = colStart; colIndex < colStop; colIndex++)
+            {
+                int tmpColIndex = colIndex;
+
+                if (tmpColIndex >= people.Count)
+                {
+                    break;
+                }
+
+                <td>
+                    <PersonInput Name="@tmpColIndex.ToString()" @ref="PersonInputs[tmpColIndex]" />
+                </td>
+            }
+        </Tr>
+        rowIndex++;
+    }
+</table>
+<button @onclick="RebuildTable">Rebuild Table</button>
+<button @onclick="VerifyValues">Verify values</button>
+
+
+
+@code{
+    List<Person> people { get; set; }
+    private PersonInput[] PersonInputs { get; set; }  // Keep track of inputs so we can get user input later
+    private const int ColumnCount = 4; // Number of columns to render on the input screen
+    private Random rnd;
+
+    public Index()
+    {
+        rnd = new();
+        people = new();
+
+    }
+
+    private async Task RebuildTable()
+    {
+        // build some fake data
+        int newCount = rnd.Next(1, 20);
+
+        people = new List<Person>(newCount);
+
+        for (int i = 0; i < newCount; i++)
+            people.Add(new Person { Name = Guid.NewGuid().ToString() });
+
+        // reset the array that holds the reference to each rendered PersonInput control
+        PersonInputs = new PersonInput[people.Count];
+    }
+
+    private async Task VerifyValues()
+    {
+        // Number of controls (PersonInput) must always match number of data elements (people).
+        int controlCount = PersonInputs.Where(x => x is not null).Count();
+        int peopleCount = people.Count;
+
+        System.Diagnostics.Debug.Assert(controlCount == peopleCount);
+
+    }
+}
